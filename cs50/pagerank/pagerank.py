@@ -1,3 +1,4 @@
+import math
 import os
 import random
 import re
@@ -108,7 +109,6 @@ def sample_pagerank(corpus, damping_factor, n):
     starting_rank = 0
     ranking_dict = {k:starting_rank for k in corpus.keys()}
     all_prob = {k:transition_model(corpus, k, damping_factor) for k in corpus.keys()}
-    print(all_prob)
     inc = 1/n
     for i in range(n):
         prob_dict = all_prob[current_page]
@@ -127,7 +127,30 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+
+
+    num_pages = len(corpus)
+    hop_chance = (1 - damping_factor) / num_pages
+
+    starting_rank = 1 / num_pages
+    min_iterations = int(max(1, math.log(num_pages))*20)
+    # rank_dict_c -> [previous rank, current rank]
+    rank_dict_c = {k:[starting_rank, starting_rank] for k in corpus.keys()}
+    print(min_iterations)
+
+    for i in range(min_iterations):
+        for page in corpus.keys():
+            prev_rank = rank_dict_c[page][1]
+            traveled_chance = [rank_dict_c[x][0] / len(corpus[x]) for x in corpus.keys()]
+            print(traveled_chance)
+            traveled_chance = sum(traveled_chance)
+            rank_dict_c[page][1] = hop_chance + damping_factor * traveled_chance
+            rank_dict_c[page][0] = prev_rank
+
+    return {k:v[1] for k,v in rank_dict_c.items()}
+
+
+
 
 
 if __name__ == "__main__":
