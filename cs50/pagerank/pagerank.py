@@ -1,4 +1,5 @@
 import math
+import time
 import os
 import random
 import re
@@ -6,6 +7,23 @@ import sys
 
 DAMPING = 0.85
 SAMPLES = 10000
+
+DEFAULT_FMT = '[{elapsed:0.8f}s] {name}({args}) -> {result}'
+
+def clock(fmt=DEFAULT_FMT):
+    def decorate(func):
+        def clocked(*_args):
+            t0 = time.time()
+            _result = func(*_args)
+            elapsed = time.time() - t0
+            name = func.__name__
+            args = ', '.join(repr(arg) for arg in _args)
+            result = repr(_result)
+            print(fmt.format(**locals()))
+            return _result
+        return clocked
+    return decorate
+
 
 
 def main():
@@ -47,7 +65,6 @@ def crawl(directory):
         )
 
     return pages
-
 
 def transition_model(corpus, page, damping_factor):
     """
@@ -95,7 +112,7 @@ def weighted_choose(prob_matrix):
         if r <= 0.001:
             return page
 
-
+@clock()
 def sample_pagerank(corpus, damping_factor, n):
     """
     Return PageRank values for each page by sampling `n` pages
@@ -117,7 +134,7 @@ def sample_pagerank(corpus, damping_factor, n):
     return ranking_dict
 
 
-
+@clock()
 def iterate_pagerank(corpus, damping_factor):
     """
     Return PageRank values for each page by iteratively updating
