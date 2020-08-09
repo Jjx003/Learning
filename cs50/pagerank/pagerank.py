@@ -24,8 +24,6 @@ def clock(fmt=DEFAULT_FMT):
         return clocked
     return decorate
 
-
-
 def main():
     if len(sys.argv) != 2:
         sys.exit("Usage: python pagerank.py corpus")
@@ -38,7 +36,6 @@ def main():
     print(f"PageRank Results from Iteration")
     for page in sorted(ranks):
         print(f"  {page}: {ranks[page]:.4f}")
-
 
 def crawl(directory):
     """
@@ -78,9 +75,15 @@ def transition_model(corpus, page, damping_factor):
     hop_chance = 1 - damping_factor
     probability_matrix = {k:hop_chance for k in corpus.keys()}
     outgoing = corpus[page]
-    move_on = damping_factor / len(outgoing)
+    move_on = 0
+    outgoing_degree = len(outgoing)
+    if outgoing_degree > 0:
+        move_on = damping_factor / outgoing_degree
+
     for link in outgoing:
-        probability_matrix[link] = probability_matrix[link] + move_on
+        prob = probability_matrix[link] + move_on
+        if prob > 0:
+            probability_matrix[link] = prob
 
     return probability_matrix
 
@@ -105,7 +108,7 @@ def weighted_choose(prob_matrix):
 
     normal_factor = 1000
     prob_matrix = {k:v*normal_factor for k,v in prob_matrix.items()}
-    total_weight = sum(prob_matrix.values())
+    total_weight = int(sum(prob_matrix.values()))
     r = random.randint(1, total_weight)
     for page, weight in prob_matrix.items():
         r -= weight
