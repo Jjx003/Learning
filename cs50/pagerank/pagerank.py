@@ -129,23 +129,32 @@ def iterate_pagerank(corpus, damping_factor):
     """
 
 
+    epsilon = 0.00001
     num_pages = len(corpus)
     hop_chance = (1 - damping_factor) / num_pages
 
     starting_rank = 1 / num_pages
-    min_iterations = int(max(1, math.log(num_pages))*20)
     # rank_dict_c -> [previous rank, current rank]
     rank_dict_c = {k:[starting_rank, starting_rank] for k in corpus.keys()}
-    print(min_iterations)
+    iterations = 0
 
-    for i in range(min_iterations):
+    while True:
+        iterations += 1
         for page in corpus.keys():
             prev_rank = rank_dict_c[page][1]
-            traveled_chance = [rank_dict_c[x][0] / len(corpus[x]) for x in corpus.keys()]
-            print(traveled_chance)
+            traveled_chance = [
+                rank_dict_c[x][0] / len(corpus[x]) for x in corpus.keys()
+                if page in corpus[x]
+            ]
             traveled_chance = sum(traveled_chance)
             rank_dict_c[page][1] = hop_chance + damping_factor * traveled_chance
             rank_dict_c[page][0] = prev_rank
+
+        total_error = sum([abs(x[1]-x[0]) for x in rank_dict_c.values()]) / num_pages
+        if total_error <= epsilon:
+            break
+
+    #print(iterations, math.log(num_pages))
 
     return {k:v[1] for k,v in rank_dict_c.items()}
 
